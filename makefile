@@ -2,10 +2,13 @@ CC=gcc
 
 .PHONY: all clean
 
-all: test
+all: gillespie
 
 clean:
-	rm test
+	rm gillespie
 
-test: gillespie.c
-	$(CC) -o $@ gillespie.c
+%: %.c
+	$(CC) -o $@ $>
+
+# % : %.o
+# 	$(CC) -c -o $@ $>
