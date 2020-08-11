@@ -1,14 +1,17 @@
 CC=gcc 
+NAME=social_sir
+
 
 .PHONY: all clean
 
-all: gillespie
+all: $(NAME)
 
 clean:
-	rm gillespie
+	rm $(NAME) $(NAME).o
 
-%: %.c
-	$(CC) -o $@ $>
+$(NAME): $(NAME).o
+	$(CC) -Wall -o $@ $< -lm
 
-# % : %.o
-# 	$(CC) -c -o $@ $>
+%.o: %.c
+	$(CC) -Wall -c $< -o $@
+
