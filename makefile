@@ -7,11 +7,15 @@ NAME=social_sir
 all: $(NAME)
 
 clean:
-	rm $(NAME) $(NAME).o
+	rm $(NAME) 
+	#rm $(NAME).o
 
-$(NAME): $(NAME).o
+%: %.c
 	$(CC) -Wall -o $@ $< -lm
 
-%.o: %.c
-	$(CC) -Wall -c $< -o $@
+# $(NAME): $(NAME).o
+# 	$(CC) -Wall -o $@ $< -lm
+# 
+# %.o: %.c
+# 	$(CC) -Wall -o $@ -c $<
 
