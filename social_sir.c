@@ -10,14 +10,6 @@
 
 
 /*
-void initialize_arrays(int pop, int num_array[]) {
-Function to initialize arrays.
-int pop: population size.
-int num_array[]: number of seperators in social context.
-}
-*/
-
-/*
 struct individual {
 	int id;
 	char state;
@@ -29,27 +21,14 @@ int fam_type(int num_fam_types) {
 	int fam_type = floor(log(randint(1, (int)exp(num_fam_types))))
 	return fam_type
 }
+
+int len_arr(int arr[]) {
+	size_t n = sizeof(arr) / sizeof(arr[0]);
+	return (int) n;
+}
 */
 
-int *init_individuals(int pop_size, int num_contexts[]) {
-	/*num_context is an array, give sthe number of compartments of given social context
-		eg: if there are 100 workplaces, the num_contexts entry for work is 100
-	currently, the ordering is {num_work, num_fam}
-	maybe one should use array of struct instead of 2d array?*/
-	int j,k;
-	/* struct individuals[];*/
-	static int individuals[pop_size][sizeof(num_contexts)];
-	for (k=0; k<pop_size; k++) {
-		/*generate the proper ids for social contexts*/
-		int work_id = rand_int(0, num_contexts[0]);
-		int context[] = {work_id};
-		for (j=0; j< sizeof(num_contexts); j++) {
-			individuals[k][j] = context[j]; 
-		}
-	}
-	return individuals;
-}
-
+/*
 int get_index(int target_val, int arr[]) {
 	int k;
 	for (k=0; k<sizeof(arr); k++) {
@@ -100,22 +79,24 @@ void update_compartments(int index_move, int arr[], int arr_sep[]) {
 	shift_to_last(index_move, index_last[1] - 1, arr);
 	arr_sep[index_last[0]]--;
 }
+*/
+
 
 int rand_int(int low, int high) {
 	/* Return random integer in range (inclusive) low .. high - 1 */
-	printf("%d\n", (high - low));
-	printf("%d\n", rand());
-	printf("%d\n", RAND_MAX);
 	double temp = (int) floor((double)((high - low) * rand() / RAND_MAX));
 	return temp;
 }
 
+
 int main(){
-	int pop, s, i, r;
+	int pop; 
 	int num_w;
-	double t, v, bf, bw, bi, tot, rd;
+	// int s, i, r;
+	// double t, v, bf, bw, bi, tot, rd;
 	pop = 30; //currently causing segfault at 1000000. 1e5 is ok.
 	num_w = pop/10;
+	/*
 	i = 5;
 	s = pop - i;
 	r = 0;
@@ -125,19 +106,48 @@ int main(){
 	//bf = 2.0/(s + i + r);
 	bw = 2.0/(s + i + r);
 	//bi = 2.0/(s + i + r);
+	*/
+
+	int j, k;
+	int contexts_num[] = {9,4,5,8,3};
+	size_t contexts_num_length = sizeof(contexts_num) / sizeof(contexts_num[0]);
+	printf("len : %d\n", contexts_num_length); 
+
+	//int num_con = contexts_num_length; //const?
+	///* struct individuals[];*/
+	//int individuals[pop][num_con]; // static?
+	//for (k=0; k<pop; k++) {
+	//	/*generate the proper ids for social contexts*/
+	//	int work_id = rand_int(0, contexts_num[0]);
+	//	printf("%d\n", work_id);
+	//	int context[] = {work_id};
+	//	for (j=0; j< num_con; j++) {
+	//		// printf("j : %d\n", j); 
+	//		printf("con[j] : %d\n", context[j]); 
+	//		individuals[k][j] = context[j]; 
+	//		printf("j:%d, k:%d, ind[j][k]:%d\n", j, k, individuals[k][j]);
+	//	}
+	//}
 	
-	int contexts[] = {num_w};
-	
+
 	/*initialize arrays of the different workplaces and families
 	and their associated quantities*/
+	/*
 	int comp[pop], comp_sep[pop];
 	int work[pop], work_sep[3*num_w];
-	int j;
+	*/
+	
+	/*for (j=0; j<len_arr(contexts_num); j++) {
+		printf("j%d\n", j); 
+		printf("con%d\n", contexts_num[j]); 
+	}*/
 
-	int *individuals = init_individuals(pop, contexts);
+	//int *individuals = init_individuals(pop, contexts);
+	/*
 	for (j=0; j<pop; j++){
-		printf("Individual %d is at workplace %d", j, individuals[j][0]);
+		printf("Individual %d is at workplace %d", j, individuals[j]);
 	}
+	*/
 
 	/*
 	for (j=0; j<3*num_w; j++) {
@@ -150,19 +160,41 @@ int main(){
 	int k = 500;
 	printf("next workplace from %d starts at %d\n", k, get_next_social_index(k, work_sep));
 	*/
-	// F_sum = 
-	// W_sum = 
+	
 
-	/*
-	printf("attempting to get index %d and returning %d\n", 0, get_index(0, work_sep));
-	printf("attempting to get index %d and returning %d\n", 20, get_index(20, work_sep));
-	printf("attempting to get index %d and returning %d\n", 1000, get_index(1000, work_sep));
-	
-	for (j=0; j<100; j++){
-		printf("%g\n", rand_int(0, 100));
-	}
-	*/
-	
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/*
 	while (i > 1){
@@ -178,10 +210,28 @@ int main(){
 			{s--; i++;}
 		printf("%f  %d\n",t,i);
 	}*/
-	return 0;
-}
-
 
 // new_decol_day=(int)floor((double)random()/RAND_MAX*community_days);
 
 
+//int *init_individuals(int pop_size, int context_num[]) {
+//	/*num_context is an array, give sthe number of compartments of given social context
+//		eg: if there are 100 workplaces, the num_contexts entry for work is 100
+//	currently, the ordering is {num_work, num_fam}
+//	maybe one should use array of struct instead of 2d array?*/
+//	int j,k;
+//	int num_con = len_arr(context_num); //const?
+//	/* struct individuals[];*/
+//	int individuals[pop_size][num_con]; // static?
+//	for (k=0; k<pop_size; k++) {
+//		/*generate the proper ids for social contexts*/
+//		int work_id = rand_int(0, context_num[0]);
+//		int context[] = {work_id};
+//		for (j=0; j< num_con; j++) {
+//			// printf("j : %d\n", j); 
+//			// printf("conj : %d\n", context[j]); 
+//			individuals[k][j] = context[j]; 
+//		}
+//	}
+//	return individuals;
+//}
