@@ -6,29 +6,19 @@
 #define F 5000  /* antal familier */
 #define C 2 /* antal sociale contexter */
 
+#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
+
 // int social[N][C]; //what is this? matrix?
 
 
 /*
-struct individual {
-	int id;
-	char state;
-	int work;
-	int family;
-}
 
 int fam_type(int num_fam_types) {
 	int fam_type = floor(log(randint(1, (int)exp(num_fam_types))))
 	return fam_type
 }
 
-int len_arr(int arr[]) {
-	size_t n = sizeof(arr) / sizeof(arr[0]);
-	return (int) n;
-}
-*/
 
-/*
 int get_index(int target_val, int arr[]) {
 	int k;
 	for (k=0; k<sizeof(arr); k++) {
@@ -84,18 +74,17 @@ void update_compartments(int index_move, int arr[], int arr_sep[]) {
 
 int rand_int(int low, int high) {
 	/* Return random integer in range (inclusive) low .. high - 1 */
-	double temp = (int) floor((double)((high - low) * rand() / RAND_MAX));
-	return temp;
+	return (int) floor((float) (high - low) * rand()/RAND_MAX);
 }
 
 
 int main(){
 	int pop; 
-	int num_w;
+	int num_work;
 	// int s, i, r;
 	// double t, v, bf, bw, bi, tot, rd;
-	pop = 30; //currently causing segfault at 1000000. 1e5 is ok.
-	num_w = pop/10;
+	pop = 40; //currently causing segfault at 1000000. 1e5 is ok.
+	num_work = pop/10;
 	/*
 	i = 5;
 	s = pop - i;
@@ -107,34 +96,40 @@ int main(){
 	bw = 2.0/(s + i + r);
 	//bi = 2.0/(s + i + r);
 	*/
-
-	int j, k;
-	int contexts_num[] = {9,4,5,8,3};
-	size_t contexts_num_length = sizeof(contexts_num) / sizeof(contexts_num[0]);
-	printf("len : %d\n", contexts_num_length); 
-
-	//int num_con = contexts_num_length; //const?
-	///* struct individuals[];*/
-	//int individuals[pop][num_con]; // static?
-	//for (k=0; k<pop; k++) {
-	//	/*generate the proper ids for social contexts*/
-	//	int work_id = rand_int(0, contexts_num[0]);
-	//	printf("%d\n", work_id);
-	//	int context[] = {work_id};
-	//	for (j=0; j< num_con; j++) {
-	//		// printf("j : %d\n", j); 
-	//		printf("con[j] : %d\n", context[j]); 
-	//		individuals[k][j] = context[j]; 
-	//		printf("j:%d, k:%d, ind[j][k]:%d\n", j, k, individuals[k][j]);
-	//	}
-	//}
 	
+	/*iterables*/
+	int j, k;
+	/*init*/
+	int contexts[] = {num_work};
+	size_t contexts_length = sizeof(contexts) / sizeof(contexts[0]);
+	int num_con = contexts_length;
+
+	int individuals[pop][num_con];
+	for (k=0; k<pop; k++) {
+		//generate the proper ids for social contexts
+		int work_id = rand_int(0, contexts[0]);
+		printf("con[j] : %d\n", work_id); 
+		int indiv_context[] = {work_id}; //{rand_int(0, contexts[0])};
+		printf("ind_con[j] : %d\n", indiv_context[0]); 
+		for (j=0; j< num_con; j++) {
+			individuals[k][j] = indiv_context[j]; 
+		}
+	}
+	/*
+	printf("----------\n");
+	for (k=0; k<pop; k++) {
+		for (j=0; j< num_con; j++) {
+			printf("con[j] : %d\n", contexts[j]); 
+			printf("j:%d, k:%d, ind[j][k]:%d\n", j, k, individuals[k][j]);
+		}
+	}
+	*/
 
 	/*initialize arrays of the different workplaces and families
 	and their associated quantities*/
 	/*
 	int comp[pop], comp_sep[pop];
-	int work[pop], work_sep[3*num_w];
+	int work[pop], work_sep[3*num_work];
 	*/
 	
 	/*for (j=0; j<len_arr(contexts_num); j++) {
@@ -150,8 +145,8 @@ int main(){
 	*/
 
 	/*
-	for (j=0; j<3*num_w; j++) {
-		work_sep[3*j] = j*pop/num_w;
+	for (j=0; j<3*num_work; j++) {
+		work_sep[3*j] = j*pop/num_work;
 		if (j % 3 == 0) {
 			printf("work_sep[%d] = %d\n", j, work_sep[j]);
 		}
