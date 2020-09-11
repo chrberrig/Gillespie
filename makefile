@@ -9,6 +9,7 @@ all: $(NAME)
 clean:
 	rm $(NAME) 
 	#rm $(NAME).o
+	rm sir_data.csv
 
 %: %.c
 	$(CC) -Wall -o $@ $< -lm
