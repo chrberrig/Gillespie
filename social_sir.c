@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define N 2000 /* Pop storrelse */
+#define N 20000 /* Pop storrelse */
 #define C 3// (sizeof(contexts_num) / sizeof(contexts_num[0]))
 #define T 2 /*Process types (infection, recovery)*/
 //#define MAX_SEP N/4 /* Remember to update this according to what context have the higest num */
@@ -334,9 +334,9 @@ double choose_event_time(int type) {
 	double rd, tau, dt;
 	rd=(double)random()/RAND_MAX;
 	tau = type_sums[type];
-	printf("tau: %g\n", tau);
+	//printf("tau: %g\n", tau);
 	dt = -log(rd)/tau;
-	printf("dt: %g\n", dt);
+	//printf("dt: %g\n", dt);
 	return dt;
 }
 	
@@ -631,9 +631,9 @@ int main(){
 		t += dt;
 		context = choose_event_context(type);
 		id = choose_event_individual(type);
-		printf("--------------------\n");
-		printf("dt:%g,\tt:%g,\ttype:%d,\tcon:%d,\tid:%d\n", dt, t, type, context, id);
-		printf("--------------------\n");
+		//printf("--------------------\n");
+		//printf("dt:%g,\tt:%g,\ttype:%d,\tcon:%d,\tid:%d\n", dt, t, type, context, id);
+		//printf("--------------------\n");
 		update_all_compartments(id);
 		for (j=0; j<C; j++) {
 			update_sum(j);
@@ -643,6 +643,7 @@ int main(){
 		//fprintf(sir_data, "t:%g,\ttype:%d,\tcon:%d,\tid:%d\n", t, type, context, id);
 	}
 	fclose(sir_data);
+	printf("Simulation Done!\n");
 	return 0;
 }
 
