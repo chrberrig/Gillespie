@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
-#define N 200000 /* Pop storrelse */
+#define N 10000 /* Pop storrelse */
 #define C 3// (sizeof(contexts_num) / sizeof(contexts_num[0]))
 #define T 2 /*Process types (infection, recovery)*/
 //#define MAX_SEP N/4 /* Remember to update this according to what context have the higest num */
@@ -183,20 +184,12 @@ int get_next_sep(int target_index, int context_id) {
 void sir_init() {
 	int j, k;
 	printf("separators in sir init:\n");
-	//for (j=0; j<C; j++) {
-	//	//arr_display(contexts_arr[j], N);
-	//	//arr_display(contexts_sep[j], 3*contexts_num[j]);
-	//	//sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
-	//	//printf("--------------------\n");
-	//}
 	for (j=0; j<C; j++) { 
-		//arr_display(contexts_sep[2], 3*contexts_num[2]);
 		for (k=0; k<3*contexts_num[j]; k++) {
-			//arr_display(contexts_sep[2], 3*contexts_num[2]);
 			if (k<3*(contexts_num[j]-1)){
 				contexts_sir[j][k%3][k/3] = contexts_sep[j][k+1] - contexts_sep[j][k];
 			} 
-			else if (k<3*contexts_num[j]) { //(3*(contexts_num[j]-1)<k && k<3*contexts_num[j]) {
+			else if (k<3*contexts_num[j]) { 
 				contexts_sir[j][k%3][k/3] = N - contexts_sep[j][k];
 			}
 		}
@@ -269,38 +262,19 @@ void update_all_compartments(int id) {
 
 }
 
-/* sum updates (here be errors) */
-//double calc_sum(int context_id, int type_id) {
-//	int k, type0_sum=0, type1_sum=0;
-//	for (k=0; k<contexts_num[context_id]; k++){
-//		type0_sum = type0_sum + beta[context_id][k]*contexts_sir[context_id][type_id][k]*contexts_sir[context_id][type_id+1][k];
-//		type1_sum = type1_sum + gam[context_id]*contexts_sir[context_id][type_id][k];
-//	}
-//	//printf("Error: sum not calculated!\n");
-//	//return -1;
-//	//exit(1);
-//}
-
 void update_sum(int context_id) {
 	int j, k; 
 	double type0_sum=0, type1_sum=0;
 	double t_sum = 0;	
-	//printf("enter update_sum\n");
-	//printf("context_id: %d,\ttype_id: %d\n", context_id, type_id);
 	for (k=0; k<contexts_num[context_id]; k++){
 		type0_sum = type0_sum + beta[context_id][k]*contexts_sir[context_id][0][k]*contexts_sir[context_id][1][k];
 		type1_sum = type1_sum + gam[context_id]*contexts_sir[context_id][1][k];
 	}
 	contexts_sums[context_id][0] = type0_sum; 
 	contexts_sums[context_id][1] = type1_sum;
-	//printf("contexts_sums[context_id][0]: %g\n", contexts_sums[context_id][0]);
-	//printf("contexts_sums[context_id][1]: %g\n", contexts_sums[context_id][1]);
 	for (j=0; j<C; j++) {
-		//context_state_display(j);
-		//d_arr_display(contexts_sums[context_id], T);
 		t_sum = t_sum + contexts_sums[j][0];
 	}
-	//printf("t_sums:%g\n", t_sum);
 	type_sums[0] = t_sum;
 	type_sums[1] = contexts_sums[0][1];
 }
@@ -310,18 +284,12 @@ void update_sum(int context_id) {
 int choose_event_type() {
 	double rd, cumul_t_sum, normaliz;
 	rd = (double)random()/RAND_MAX;
-	//printf("rd: %g \n", rd);
 	cumul_t_sum = 0;
-	//printf("type_sums:\n");
-	//d_arr_display(type_sums, T);
 	normaliz = d_arr_sum(type_sums, T);
-	//printf("normaliz: %g \n", normaliz);
 	int k;	
 	for (k=0; k<T; k++) {
 		cumul_t_sum = cumul_t_sum + type_sums[k];
-		//printf("cumul_t_sum: %g \n", cumul_t_sum);
 		if (rd<cumul_t_sum/normaliz) {
-			//printf("cumul_t_sum(n): %g \n", cumul_t_sum/normaliz);
 			return k;
 		}
 	}
@@ -332,33 +300,19 @@ int choose_event_type() {
 
 double choose_event_time(int type) {
 	double rd, tau, dt;
-	rd=(double)random()/RAND_MAX;
+	rd = (double)random()/RAND_MAX;
 	tau = type_sums[type];
-	//printf("tau: %g\n", tau);
 	dt = -log(rd)/tau;
-	//printf("dt: %g\n", dt);
 	return dt;
 }
 	
 int choose_event_context(int type_id) {
 	int j;	
 	double rd, cumul_c_sum;//, normaliz;
-	//printf("enter choose_event_context\n");
 	rd = (double)random()/RAND_MAX;
-	//normaliz = 0;
-	//for (j=0; j<C; j++) {
-	//	normaliz = normaliz + contexts_sums[j][type_id];
-	//}
-	//printf("Normaliz_context: %g\n", normaliz);
-	//printf("rd_context: %g\n", rd);
 	cumul_c_sum = 0;
-	//printf("type_sums[type_id]: %g\n", type_sums[type_id]);
-	//for (j=0; j<C; j++) {
-	//	printf("contexts_sums[j][type_id]: %g\n", contexts_sums[j][type_id]);
-	//}
 	for (j=0; j<C; j++) {
 		cumul_c_sum = cumul_c_sum + contexts_sums[j][type_id];
-		//printf("cumul_c_sum: %g\n", cumul_c_sum);
 		if (rd<cumul_c_sum/type_sums[type_id]) {
 			return j;
 		}
@@ -388,23 +342,19 @@ void check_compartments(int event_type){
 void gen_context_ids(int context_id, int con_size, int con_list[]) {
 	int k;
 	if (con_size < N - global_counter) {
-		//printf("enterfam1\n");
 		for (k=global_counter; k<global_counter+con_size; k++) {
 			con_list[k] = contexts_num[context_id];
 		}
 		global_counter = global_counter + con_size;
 		contexts_num[context_id]++;
-		//printf("con_size: %d ,\tcon_counter: %d\n", con_size, global_counter);
 	}
 	else {
-		//printf("enterfam2\n");
 		con_size = N - global_counter;
 		for (k=global_counter; k<global_counter+con_size; k++) {
 			con_list[k] = contexts_num[context_id];
 		}
 		global_counter = global_counter + con_size;
 		contexts_num[context_id]++;
-		//printf("con_size: %d ,\tcon_counter: %d\n", con_size, global_counter);
 	}
 }
 
@@ -415,17 +365,14 @@ void init_individuals(){
 	/* initialize individials register array */
 	int work_avg = 6;
 	int fam_avg = 2;
-	//int indiv[N];
-	/* generate the proper ids for social contexts */
-	//for (k=0; k<N; k++) {
-	//	indiv[k] = k; 
-	//}
+
 	/* comp */
 	contexts_num[0] = 1;
 	for (k=0; k<N; k++) {
 		individuals[k][0] = k; 
 		contexts_arr[0][k] = k;
 	}
+
 	/* work */
 	global_counter = 0;
 	int work_size = 0;
@@ -433,11 +380,8 @@ void init_individuals(){
 	while (global_counter < N) {
 		work_size = rand_int(1, 2*work_avg+1);
 		gen_context_ids(1, work_size, work_list);
-		//printf("work_size: %d ,\twork_counter: %d\n", work_size, global_counter);
 	}
 	arr_shuffle(work_list, N);
-	//printf("work_list: \n");
-	//arr_display(work_list, N);
 	for (k=0; k<N; k++) {
 		individuals[k][1] = work_list[k];
 	}	
@@ -446,19 +390,14 @@ void init_individuals(){
 	global_counter = 0;
 	int fam_size = 0;
 	int fam_list[N];
-	//arr_shuffle(indiv, N);
 	while (global_counter < N) {
 		fam_size = rand_int(1, 2*fam_avg+1);
 		gen_context_ids(2, fam_size, fam_list);
-		//printf("fam_size: %d ,\tfam_counter: %d\n", fam_size, global_counter);
 	}
 	arr_shuffle(fam_list, N);
-	//printf("fam_list: \n");
-	//arr_display(fam_list, N);
 	for (k=0; k<N; k++) {
 		individuals[k][2] = fam_list[k];
 	}	
-	
 }
 
 void init_arr(int context_index) { // this is also very slow, though only an init-funct.
@@ -536,24 +475,9 @@ int main(){
 	
 	/* initializes arrays in accordence with funct. */
 	init_individuals();
-	/*
-	for (j=0; j<C; j++) {
-		for (k=0; k<N; k++) {
-			printf("%d\n", individuals[k][j]);
-		}
-		printf("--------------------\n");
-	}
-	*/
 	printf("Individuals init done! \n");
 	
 	init_all_arr();
-	printf("separators:");
-	for (j=0; j<C; j++) {
-		//arr_display(contexts_arr[j], N);
-		arr_display(contexts_sep[j], 3*contexts_num[j]);
-		//sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
-		printf("--------------------\n");
-	}
 	printf("Array init done! \n");
 
 	/* Init. constants for model */
@@ -562,12 +486,8 @@ int main(){
 		for (k=0; k<contexts_num[j]; k++) {
 			beta[j][k] = b[j];
 		}
-		//printf("beta_arrays:\n");
-		//d_arr_display(beta[j], contexts_num[j]);
 		gam[j] = v;
 	}
-	//printf("gam:\n");
-	//d_arr_display(gam, C);
 	printf("Constants init done! \n");
 	
 
@@ -583,23 +503,9 @@ int main(){
 
 	printf("\n----------------\nInit_infection!\n----------------\n");
 
-	//printf("Contexts numbers:\n");
-	//arr_display(contexts_num, C);
-	//for (j=0; j<C; j++) {
-		//printf("----------\ncontext: %d\n----------\n", j);
-		//sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
-		//context_state_display(j);
-		//for (l=0; l<3; l++) {
-		//	arr_display(contexts_sir[j][l], contexts_num[j]);
-		//}
-	//}
-
 	/* initialize a few infected individuals */
-
 	for (k=0; k<i0; k++) { 
-		//printf("i0Counter = %d\n", k);
 		//check_compartments(0);
-		//printf("generating random int in range[%d, %d]:\n", contexts_sep[0][0], contexts_sep[0][1]-1);
 		rint = rand_int(contexts_sep[0][0], contexts_sep[0][1]);
 		id = contexts_arr[0][rint];
 		printf("elem: %d\n", id);
@@ -612,9 +518,6 @@ int main(){
 			printf("----------\ncontext: %d\n----------\n", j);
 			sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
 			context_state_display(j);
-			for (l=0; l<3; l++) {
-				arr_display(contexts_sir[j][l], contexts_num[j]);
-			}
 		}*/
 	}
 	
@@ -638,7 +541,6 @@ int main(){
 		for (j=0; j<C; j++) {
 			update_sum(j);
 		}
-		//context_state_display(0);
 		fprintf(sir_data, "%g,%d,%d,%d\n", t, contexts_sep[0][1]-contexts_sep[0][0] , contexts_sep[0][2]-contexts_sep[0][1], N-contexts_sep[0][2]);
 		//fprintf(sir_data, "t:%g,\ttype:%d,\tcon:%d,\tid:%d\n", t, type, context, id);
 	}
@@ -732,5 +634,17 @@ int arr_inner_prod(int arr1[], int arr2[], int n){
 //			}
 //		}
 //	}
+//}
+
+/* sum updates (here be errors) */
+//double calc_sum(int context_id, int type_id) {
+//	int k, type0_sum=0, type1_sum=0;
+//	for (k=0; k<contexts_num[context_id]; k++){
+//		type0_sum = type0_sum + beta[context_id][k]*contexts_sir[context_id][type_id][k]*contexts_sir[context_id][type_id+1][k];
+//		type1_sum = type1_sum + gam[context_id]*contexts_sir[context_id][type_id][k];
+//	}
+//	//printf("Error: sum not calculated!\n");
+//	//return -1;
+//	//exit(1);
 //}
 
