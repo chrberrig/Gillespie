@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define N 20 /* Pop storrelse */
+#define N 2000 /* Pop storrelse */
 #define C 3// (sizeof(contexts_num) / sizeof(contexts_num[0]))
 #define T 2 /*Process types (infection, recovery)*/
 //#define MAX_SEP N/4 /* Remember to update this according to what context have the higest num */
@@ -11,12 +11,13 @@
 //static int num_comp; // = 1;
 //static int num_work; // = N/10;
 //static int num_fam; // = N/4; /*currently this is max...*/
+//static double t;
 static int global_counter;
 static double beta[C][N];
 static double gam[C];
 static int contexts_num[C]; // = {num_comp, num_work, num_fam};
 static int contexts_arr[C][N];
-static int contexts_sep[C][N]; //[MAX_SEP];
+static int contexts_sep[C][3*N]; //[MAX_SEP];
 static int contexts_sir[C][3][N]; // sir-Compartments - social contexts
 static double contexts_sums[C][T]; //= {0, 0, 0}; //infection types + recovery
 static double type_sums[T]; //= {0, 0, 0};
@@ -149,7 +150,7 @@ void sep_display(int arr[], int len, int arr_sep[], int len_sep){
 	}
 }
 
-int get_sep_index(int id, int context_id) { // this procedure is rediculously slow... someone do something!!1!
+int get_sep_index(int id, int context_id) {
 	int k=0;
 	int first_index = get_first_index(id, contexts_arr[context_id], N);
 	if (contexts_sep[context_id][k]>first_index) {
@@ -182,45 +183,23 @@ int get_next_sep(int target_index, int context_id) {
 void sir_init() {
 	int j, k;
 	printf("separators in sir init:\n");
-	for (j=0; j<C; j++) {
+	//for (j=0; j<C; j++) {
 	//	//arr_display(contexts_arr[j], N);
-		arr_display(contexts_sep[j], 3*contexts_num[j]);
+	//	//arr_display(contexts_sep[j], 3*contexts_num[j]);
 	//	//sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
-		printf("--------------------\n");
-	}
+	//	//printf("--------------------\n");
+	//}
 	for (j=0; j<C; j++) { 
-		arr_display(contexts_sep[2], 3*contexts_num[2]);
+		//arr_display(contexts_sep[2], 3*contexts_num[2]);
 		for (k=0; k<3*contexts_num[j]; k++) {
-			//contexts_sir[j][k%3][k/3] = contexts_sep[j][k+1] - contexts_sep[j][k]
-			arr_display(contexts_sep[2], 3*contexts_num[2]);
+			//arr_display(contexts_sep[2], 3*contexts_num[2]);
 			if (k<3*(contexts_num[j]-1)){
-				//printf("in_if:\n");
-				//printf("k:%d\n", k);
-				//arr_display(contexts_sep[2], 3*contexts_num[2]);
 				contexts_sir[j][k%3][k/3] = contexts_sep[j][k+1] - contexts_sep[j][k];
-				//printf("contexts_sir[%d][%d][%d] normal: %d\n", j, k%3, k/3, contexts_sir[j][k%3][k/3]);
-				//printf("--------------------\n");
 			} 
 			else if (k<3*contexts_num[j]) { //(3*(contexts_num[j]-1)<k && k<3*contexts_num[j]) {
-				//printf("contexts_sep[%d][%d+1]: %d\n", j, k, contexts_sep[j][k+1]);
-				//printf("contexts_sep[%d][%d]: %d\n", j, k, contexts_sep[j][k]);
-				printf("in_else_if:\n");
-				arr_display(contexts_sep[2], 3*contexts_num[2]);	
-				//printf("j, k: %d,%d\n", j,k);
-				printf("before_contexts_sep[j][k]:%d\n", contexts_sep[2][24]);
 				contexts_sir[j][k%3][k/3] = N - contexts_sep[j][k];
-				printf("after_contexts_sep[j][k]:%d\n", contexts_sep[2][24]);
-				//printf("j, k: %d,%d\n", j,k);
-				printf("in_else_if_after:\n");
-				arr_display(contexts_sep[2], 3*contexts_num[2]);
-				//printf("j, k: %d,%d\n", j,k);
-				printf("contexts_sir[%d][%d][%d] last: %d\n", j, k%3, k/3, contexts_sir[j][k%3][k/3]);
-				//printf("--------------------\n");
-				exit(1);
 			}
-			//printf("---------startover_k-----------\n");
 		}
-		//printf("---------startover_j-----------\n");
 	}
 }
 
@@ -257,17 +236,13 @@ void update_compartment(int id, int j) {
 	*/
 	/* Update array and seperator */
 	int index_move = get_first_index(id, contexts_arr[j], N);
-	//printf("hep1\n");
-	int sep_type_index = get_sep_index(id, j); // <--- This be the problem!
-	//printf("hep2\n");
+	int sep_type_index = get_sep_index(id, j); 
 	int index_last = get_next_sep(index_move, j);
-	//printf("hep3\n");
 	shift_to_last(index_move, index_last - 1, contexts_arr[j]);
-	//printf("hep4\n");
 	int index_next_sep = get_first_index(index_last, contexts_sep[j], 3*contexts_num[j]);
 	contexts_sep[j][index_next_sep]--;
-	//printf("hep5\n");
 	/* checks! */
+	/*
 	if (contexts_sep[j][index_next_sep]<contexts_sep[j][index_next_sep-1]){
 		printf("Error: crossing backwards contexts_sep[%d][%d]: %d\n", j, index_next_sep, contexts_sep[j][index_next_sep]);
 		exit(1);
@@ -276,27 +251,11 @@ void update_compartment(int id, int j) {
 		printf("Error: contexts_sep[%d][%d]: %d\n", j, index_next_sep, contexts_sep[j][index_next_sep]);
 		exit(1);
 	}
-	
-	/*
-	printf("index_move: %d\t; ", index_move);
-	printf("type_index: %d (mod3: %d)\n", sep_type_index, sep_type_index%3);
-	printf("index_last: %d\n", index_last);
-	if (sep_type_index%3 != 0) {
-		printf("Wrong Eventtype:%d\n", sep_type_index);
-		exit(1);
-	}
 	*/
 
 	/* Update sir */
 	contexts_sir[j][sep_type_index%3][sep_type_index/3]--;
-	//printf("hep6\n");
 	contexts_sir[j][sep_type_index%3 + 1][sep_type_index/3]++;
-	//printf("hep7\n");
-	/* checks */
-	/*
-	printf("sep_type_indexmod3: %d\n", sep_type_index%3);
-	printf("sep_type_indexdiv3: %d\n", sep_type_index/3);
-	*/
 }
 
 void update_all_compartments(int id) {
@@ -334,14 +293,14 @@ void update_sum(int context_id) {
 	}
 	contexts_sums[context_id][0] = type0_sum; 
 	contexts_sums[context_id][1] = type1_sum;
-	printf("contexts_sums[context_id][0]: %g\n", contexts_sums[context_id][0]);
-	printf("contexts_sums[context_id][1]: %g\n", contexts_sums[context_id][1]);
+	//printf("contexts_sums[context_id][0]: %g\n", contexts_sums[context_id][0]);
+	//printf("contexts_sums[context_id][1]: %g\n", contexts_sums[context_id][1]);
 	for (j=0; j<C; j++) {
-		context_state_display(j);
+		//context_state_display(j);
 		//d_arr_display(contexts_sums[context_id], T);
 		t_sum = t_sum + contexts_sums[j][0];
 	}
-	printf("t_sums:%g\n", t_sum);
+	//printf("t_sums:%g\n", t_sum);
 	type_sums[0] = t_sum;
 	type_sums[1] = contexts_sums[0][1];
 }
@@ -351,10 +310,10 @@ void update_sum(int context_id) {
 int choose_event_type() {
 	double rd, cumul_t_sum, normaliz;
 	rd = (double)random()/RAND_MAX;
-	printf("rd: %g \n", rd);
+	//printf("rd: %g \n", rd);
 	cumul_t_sum = 0;
-	printf("type_sums:\n");
-	d_arr_display(type_sums, T);
+	//printf("type_sums:\n");
+	//d_arr_display(type_sums, T);
 	normaliz = d_arr_sum(type_sums, T);
 	//printf("normaliz: %g \n", normaliz);
 	int k;	
@@ -362,7 +321,7 @@ int choose_event_type() {
 		cumul_t_sum = cumul_t_sum + type_sums[k];
 		//printf("cumul_t_sum: %g \n", cumul_t_sum);
 		if (rd<cumul_t_sum/normaliz) {
-			printf("cumul_t_sum(n): %g \n", cumul_t_sum/normaliz);
+			//printf("cumul_t_sum(n): %g \n", cumul_t_sum/normaliz);
 			return k;
 		}
 	}
@@ -371,32 +330,35 @@ int choose_event_type() {
 	exit(1);
 }
 
-int choose_event_time(int type) {
-	double rd, tau;
+double choose_event_time(int type) {
+	double rd, tau, dt;
 	rd=(double)random()/RAND_MAX;
 	tau = type_sums[type];
-	return -log(rd)/tau;
+	printf("tau: %g\n", tau);
+	dt = -log(rd)/tau;
+	printf("dt: %g\n", dt);
+	return dt;
 }
 	
 int choose_event_context(int type_id) {
 	int j;	
 	double rd, cumul_c_sum;//, normaliz;
-	printf("enter choose_event_context\n");
+	//printf("enter choose_event_context\n");
 	rd = (double)random()/RAND_MAX;
 	//normaliz = 0;
 	//for (j=0; j<C; j++) {
 	//	normaliz = normaliz + contexts_sums[j][type_id];
 	//}
 	//printf("Normaliz_context: %g\n", normaliz);
-	printf("rd_context: %g\n", rd);
+	//printf("rd_context: %g\n", rd);
 	cumul_c_sum = 0;
-	printf("type_sums[type_id]: %g\n", type_sums[type_id]);
-	for (j=0; j<C; j++) {
-		printf("contexts_sums[j][type_id]: %g\n", contexts_sums[j][type_id]);
-	}
+	//printf("type_sums[type_id]: %g\n", type_sums[type_id]);
+	//for (j=0; j<C; j++) {
+	//	printf("contexts_sums[j][type_id]: %g\n", contexts_sums[j][type_id]);
+	//}
 	for (j=0; j<C; j++) {
 		cumul_c_sum = cumul_c_sum + contexts_sums[j][type_id];
-		printf("cumul_c_sum: %g\n", cumul_c_sum);
+		//printf("cumul_c_sum: %g\n", cumul_c_sum);
 		if (rd<cumul_c_sum/type_sums[type_id]) {
 			return j;
 		}
@@ -554,10 +516,11 @@ int main(){
 	int rint;
 	//double tot, rd;
 	
-	static double t;
 	int type;
 	int context;
 	int id;
+	double dt;
+	static double t;
 	t = 0.0;
 	
 
@@ -565,8 +528,8 @@ int main(){
 	v = 1.15;
 
 	bc = 0.1;
-	bf = 3.0;
-	bw = 1.2;
+	bf = 1.0;
+	bw = 0.4;
 	double b[C] = {bc, bw, bf};
 	
 
@@ -620,16 +583,16 @@ int main(){
 
 	printf("\n----------------\nInit_infection!\n----------------\n");
 
-	printf("Contexts numbers:\n");
-	arr_display(contexts_num, C);
-	for (j=0; j<C; j++) {
-		printf("----------\ncontext: %d\n----------\n", j);
-		sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
-		context_state_display(j);
+	//printf("Contexts numbers:\n");
+	//arr_display(contexts_num, C);
+	//for (j=0; j<C; j++) {
+		//printf("----------\ncontext: %d\n----------\n", j);
+		//sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
+		//context_state_display(j);
 		//for (l=0; l<3; l++) {
 		//	arr_display(contexts_sir[j][l], contexts_num[j]);
 		//}
-	}
+	//}
 
 	/* initialize a few infected individuals */
 
@@ -654,23 +617,30 @@ int main(){
 			}
 		}*/
 	}
+	
+	printf("\n----------------\nRunning Sim!\n----------------\n");
+	
 	FILE *sir_data;
 	sir_data = fopen( "sir_data.csv", "w+" );
 
-	while (contexts_sep[2]-contexts_sep[1]>0) {
+	fprintf(sir_data, "t,S,I,R\n");
+	fprintf(sir_data, "%g,%d,%d,%d\n", t, contexts_sep[0][1]-contexts_sep[0][0] , contexts_sep[0][2]-contexts_sep[0][1], N-contexts_sep[0][2]);
+	while (contexts_sep[0][2]-contexts_sep[0][1]>0) {
 		type = choose_event_type();
-		t = choose_event_time(type);
+		dt = choose_event_time(type);
+		t += dt;
 		context = choose_event_context(type);
 		id = choose_event_individual(type);
 		printf("--------------------\n");
-		printf("t:%g,\ttype:%d,\tcon:%d,\tid:%d\n", t, type, context, id);
+		printf("dt:%g,\tt:%g,\ttype:%d,\tcon:%d,\tid:%d\n", dt, t, type, context, id);
 		printf("--------------------\n");
 		update_all_compartments(id);
 		for (j=0; j<C; j++) {
 			update_sum(j);
 		}
-		context_state_display(0);
-		fprintf(sir_data, "t:%g,\ttype:%d,\tcon:%d,\tid:%d\n", t, type, context, id);
+		//context_state_display(0);
+		fprintf(sir_data, "%g,%d,%d,%d\n", t, contexts_sep[0][1]-contexts_sep[0][0] , contexts_sep[0][2]-contexts_sep[0][1], N-contexts_sep[0][2]);
+		//fprintf(sir_data, "t:%g,\ttype:%d,\tcon:%d,\tid:%d\n", t, type, context, id);
 	}
 	fclose(sir_data);
 	return 0;
