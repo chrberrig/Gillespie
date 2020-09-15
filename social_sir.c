@@ -4,25 +4,18 @@
 #include <time.h>
 
 #define N 10000 /* Pop storrelse */
-#define C 3// (sizeof(contexts_num) / sizeof(contexts_num[0]))
-#define T 2 /*Process types (infection, recovery)*/
-//#define MAX_SEP N/4 /* Remember to update this according to what context have the higest num */
-//#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(array[0]))
+#define C 3 /* Number of social contexts */
+#define T 2 /* Process types (infection, recovery) */
 
-//static int num_comp; // = 1;
-//static int num_work; // = N/10;
-//static int num_fam; // = N/4; /*currently this is max...*/
-//static double t;
 static int global_counter;
 static double beta[C][N];
 static double gam[C];
-static int contexts_num[C]; // = {num_comp, num_work, num_fam};
+static int contexts_num[C]; 
 static int contexts_arr[C][N];
-static int contexts_sep[C][3*N]; //[MAX_SEP];
+static int contexts_sep[C][3*N];
 static int contexts_sir[C][3][N]; // sir-Compartments - social contexts
-static double contexts_sums[C][T]; //= {0, 0, 0}; //infection types + recovery
-static double type_sums[T]; //= {0, 0, 0};
-//int max_sep = *arr_get_max(contexts_num, C);
+static double contexts_sums[C][T]; 
+static double type_sums[T]; 
 static int individuals[N][C];
 
 /* Array function */
@@ -36,18 +29,6 @@ void val_switch(int *x, int *y) {
 	*y = temp;
 }
 
-void arr_display(int arr[], int len) {
-	/* Displays entries of int array in terminal:
-		Vars:	int arr[], array to display;	
-			int len, length of array.
-		Return: void	*/
-	//printf("The elements in the array are:  \n");    
-	for (int i = 0; i < len; i++) {
-		printf("%d ", arr[i]);
-	}
-	printf("\n");
-}
-
 void arr_shuffle(int arr[], int len ) {
 	/* Shuffles entries of int array:
 		Vars:	int arr[], array to shuffle;	
@@ -58,6 +39,19 @@ void arr_shuffle(int arr[], int len ) {
 		int j = rand() % (i+1);
 		val_switch(&arr[i], &arr[j]);
 	}
+}
+
+//Display
+void arr_display(int arr[], int len) {
+	/* Displays entries of int array in terminal:
+		Vars:	int arr[], array to display;	
+			int len, length of array.
+		Return: void	*/
+	//printf("The elements in the array are:  \n");    
+	for (int i = 0; i < len; i++) {
+		printf("%d ", arr[i]);
+	}
+	printf("\n");
 }
 
 void d_arr_display(double arr[], int len) {
@@ -281,6 +275,14 @@ void update_sum(int context_id) {
 
 
 /* Events */
+double choose_event_time(int type) {
+	double rd, tau, dt;
+	rd = (double)random()/RAND_MAX;
+	tau = type_sums[type];
+	dt = -log(rd)/tau;
+	return dt;
+}
+	
 int choose_event_type() {
 	double rd, cumul_t_sum, normaliz;
 	rd = (double)random()/RAND_MAX;
@@ -298,14 +300,6 @@ int choose_event_type() {
 	exit(1);
 }
 
-double choose_event_time(int type) {
-	double rd, tau, dt;
-	rd = (double)random()/RAND_MAX;
-	tau = type_sums[type];
-	dt = -log(rd)/tau;
-	return dt;
-}
-	
 int choose_event_context(int type_id) {
 	int j;	
 	double rd, cumul_c_sum;//, normaliz;
@@ -462,17 +456,14 @@ int main(){
 	static double t;
 	t = 0.0;
 	
-
 	double v, bf, bw, bc;
 	v = 1.15;
-
 	bc = 1.5/N;
 	bf = 1.0;
 	bw = 0.4/5;
 	double b[C] = {bc, bw, bf};
 	
 
-	
 	/* initializes arrays in accordence with funct. */
 	init_individuals();
 	printf("Individuals init done! \n");
@@ -492,13 +483,6 @@ int main(){
 	
 
 	sir_init();
-	/*
-	for (j=0; j<C; j++) {
-		for (k=0; k<3; k++) {
-			arr_display(contexts_sir[j][k], contexts_num[j]);
-		}
-	}
-	*/
 	printf("SIR init done! \n");
 
 	printf("\n----------------\nInit_infection!\n----------------\n");
@@ -514,11 +498,6 @@ int main(){
 		for (j=0; j<C; j++) {
 			update_sum(j);
 		}
-		/*for (j=0; j<C; j++) {
-			printf("----------\ncontext: %d\n----------\n", j);
-			sep_display(contexts_arr[j], N, contexts_sep[j], 3*contexts_num[j]);
-			context_state_display(j);
-		}*/
 	}
 	
 	printf("\n----------------\nRunning Sim!\n----------------\n");
@@ -551,75 +530,7 @@ int main(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* Graveyard */
-
-//Max
-//int *arr_get_max(int arr[], int len){
-//	/* Get max entry (index, val)-pair of int array:
-//		Vars:	int arr[],	array to search for max;	
-//			int len,	length of array to sum;
-//		Return: int sum,	(index, val)-pair of max array entry.	*/
-//	int maximum_val, c, index;
-//	maximum_val = arr[0];
-//	for (c = 0; c < len; c++){
-//		if (arr[c] > maximum_val){
-//			maximum_val  = arr[c];
-//			index = c;
-//		}
-//	int ret_arr[] = {index, maximum_val};
-//	return ret_arr;
-//	}
-//}
-
-
-///*Probably not needed*/
-//int get_last_sep_index(int target_val, int context_id) {
-//	int k;
-//	for (k=0; k<3*contexts_num[context_id]; k++) {
-//		if (k<3*contexts_num[context_id]-1 && contexts_sep[context_id][k] == target_val && contexts_sep[context_id][k+1] > target_val) {
-//			return k;
-//		}
-//		else if (k==3*contexts_num[context_id]-1 && contexts_sep[context_id][k] == target_val) {
-//			return k;
-//		}
-//	}
-//	printf("Error: element w. value %d, dont exist in the array\n", target_val);
-//	return -1;
-//}
-
-/*
-int arr_inner_prod(int arr1[], int arr2[], int n){
-	int j;
-	int sum = 0;
-	for (j=0; j<n; j++) {
-		sum = sum + arr1[j]*arr2[j]
-	}
-	return sum
-}
-*/
-
-/* probably not needed */
-/*void update_all_sums() {
-	int j, k;
-	for (k=0; k<T; k++) {
-		for (j=0; j<C; k++) {
-			update_sum(j,k);
-		}
-	}
-}*/
 
 //void sir_update_arr() {
 //	int j, k;
@@ -634,17 +545,5 @@ int arr_inner_prod(int arr1[], int arr2[], int n){
 //			}
 //		}
 //	}
-//}
-
-/* sum updates (here be errors) */
-//double calc_sum(int context_id, int type_id) {
-//	int k, type0_sum=0, type1_sum=0;
-//	for (k=0; k<contexts_num[context_id]; k++){
-//		type0_sum = type0_sum + beta[context_id][k]*contexts_sir[context_id][type_id][k]*contexts_sir[context_id][type_id+1][k];
-//		type1_sum = type1_sum + gam[context_id]*contexts_sir[context_id][type_id][k];
-//	}
-//	//printf("Error: sum not calculated!\n");
-//	//return -1;
-//	//exit(1);
 //}
 
