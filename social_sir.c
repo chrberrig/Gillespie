@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define N 20000 /* Pop storrelse */
+#define N 200000 /* Pop storrelse */
 #define C 3// (sizeof(contexts_num) / sizeof(contexts_num[0]))
 #define T 2 /*Process types (infection, recovery)*/
 //#define MAX_SEP N/4 /* Remember to update this according to what context have the higest num */
@@ -512,7 +512,7 @@ int main(){
 	int j, k;
 	
 	/* Variables */
-	int i0 = 1;
+	int i0 = 5;
 	int rint;
 	//double tot, rd;
 	
@@ -527,9 +527,9 @@ int main(){
 	double v, bf, bw, bc;
 	v = 1.15;
 
-	bc = 0.1;
+	bc = 1.5/N;
 	bf = 1.0;
-	bw = 0.4;
+	bw = 0.4/5;
 	double b[C] = {bc, bw, bf};
 	
 
